@@ -1,5 +1,7 @@
 import express from 'express';
 import cors from 'cors';
+import helmet from 'helmet';
+import rateLimit from 'express-rate-limit';
 import authRoutes from './routes/authRoutes.js';
 
 // The Express app lives here (no listen(), no database connection) so tests can
@@ -7,18 +9,43 @@ import authRoutes from './routes/authRoutes.js';
 // MongoDB and calling listen().
 const app = express();
 
+// Trust proxy (needed behind hosting provider proxies like Render, Railway, Fly.io)
+app.set('trust proxy', 1);
+
 // ============================================
 // MIDDLEWARE
 // ============================================
 
+// Security headers
+app.use(helmet());
+
 // CORS - Allow requests from web and mobile
-app.use(cors({
-  origin: [
-    process.env.WEB_URL || 'http://localhost:3000',
-    process.env.MOBILE_URL || 'idk://app',
+const normalizeUrl = (url) => (url ? url.trim().replace(/\/+$/, '') : null);
+
+const isAllowedOrigin = (origin) => {
+  // Requests with no Origin header (curl, mobile apps, health checks) are allowed
+  if (!origin) return true;
+
+  const normalized = normalizeUrl(origin);
+  const allowed = [
+    normalizeUrl(process.env.WEB_URL),
+    normalizeUrl(process.env.MOBILE_URL),
     'http://localhost:3000',
-    'http://localhost:5000'
-  ],
+    'http://localhost:5000',
+    'idk://app'
+  ].filter(Boolean);
+
+  return allowed.includes(normalized);
+};
+
+app.use(cors({
+  origin: (origin, callback) => {
+    if (isAllowedOrigin(origin)) {
+      callback(null, true);
+    } else {
+      callback(null, false);
+    }
+  },
   credentials: true
 }));
 
@@ -33,6 +60,29 @@ if (process.env.NODE_ENV !== 'test') {
     next();
   });
 }
+
+// Rate limiting for authentication routes (brute force protection)
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: () => {
+    const parsed = parseInt(process.env.AUTH_RATE_LIMIT_MAX, 10);
+    return Number.isFinite(parsed) && parsed > 0 ? parsed : 10;
+  },
+  statusCode: 429,
+  message: {
+    success: false,
+    message: 'Too many attempts, please try again later.'
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+  skip: (req) => {
+    if (req.method !== 'POST') return true;
+    if (process.env.NODE_ENV === 'test' && !process.env.ENABLE_AUTH_RATE_LIMIT_TEST) {
+      return true;
+    }
+    return false;
+  }
+});
 
 // ============================================
 // ROUTES
@@ -58,6 +108,8 @@ app.get('/health', (req, res) => {
 });
 
 // API routes (will be added incrementally)
+app.use('/api/auth/register', authLimiter);
+app.use('/api/auth/login', authLimiter);
 app.use('/api/auth', authRoutes);
 // app.use('/api/quiz', quizRoutes);
 // app.use('/api/tutor', tutorRoutes);
