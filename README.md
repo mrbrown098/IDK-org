@@ -202,3 +202,4 @@ This code is open source and available for commercial and personal use with attr
 ---
 
 **IDK.org — Because your brain is unique. Your education should be too.**
+Local dev note: tests run with `npm test`.
