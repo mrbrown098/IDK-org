@@ -1,5 +1,6 @@
 import mongoose from 'mongoose';
 import bcryptjs from 'bcryptjs';
+import validator from 'validator';
 
 const userSchema = new mongoose.Schema(
   {
@@ -14,7 +15,9 @@ const userSchema = new mongoose.Schema(
       required: [true, 'Email is required'],
       unique: true,
       lowercase: true,
-      match: [/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/, 'Please provide a valid email']
+      // validator.isEmail replaces a regex that only allowed 2-3 character
+      // endings and so rejected valid addresses such as user@example.info
+      validate: [validator.isEmail, 'Please provide a valid email']
     },
     password: {
       type: String,

@@ -238,6 +238,12 @@ npm start
 # Stop server
 Ctrl + C
 
+# Run the test suite. Database tests use an in-memory MongoDB, so no local
+# MongoDB or .env is needed; the first run downloads a mongod binary.
+# To use an existing MongoDB-compatible server instead, set TEST_MONGODB_URI
+# (tests always use a database named "idk-org-test").
+npm test
+
 # Check Node version
 node --version
 
