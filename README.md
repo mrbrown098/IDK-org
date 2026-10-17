@@ -98,7 +98,8 @@ npm install
 
 # Set up environment variables
 cp .env.example .env
-# Add your API keys to .env
+# Edit .env: JWT_SECRET is REQUIRED (the server will not start without it).
+# See SETUP.md for how to generate one.
 
 # Start the development server
 npm start

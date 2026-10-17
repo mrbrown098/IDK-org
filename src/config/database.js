@@ -8,8 +8,6 @@ export const connectDB = async () => {
 
     const connection = await mongoose.connect(mongoURI, {
       dbName: dbName,
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
       retryWrites: true,
       w: 'majority'
     });

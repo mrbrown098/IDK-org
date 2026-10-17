@@ -79,14 +79,28 @@ MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/idk-org?retryWri
 DATABASE_NAME=idk-org
 
 # Claude API - Get from https://console.anthropic.com
-CLAUDE_API_KEY=sk-ant-v3-your_actual_key_here
+# (for the AI tutor; not read by the code yet)
+CLAUDE_API_KEY=your_claude_api_key_here
+CLAUDE_MODEL=claude-sonnet-5-5
 
-JWT_SECRET=your_super_secret_key_make_it_long_and_random
+# REQUIRED - the server refuses to start without it.
+# Generate a random value (see below) and paste it here.
+JWT_SECRET=paste_your_generated_secret_here
 JWT_EXPIRY=7d
 
 WEB_URL=http://localhost:3000
 MOBILE_URL=idk://app
 ```
+
+### Generate a `JWT_SECRET`
+
+```bash
+node -e "console.log(require('crypto').randomBytes(48).toString('hex'))"
+```
+
+Copy the output into `JWT_SECRET` in your `.env`. In production (`NODE_ENV=production`) the secret must be at least 32 characters and must not be a placeholder value, otherwise the server will refuse to start.
+
+`.env.example` lists every variable. Ones marked "not read by the code yet" are placeholders for planned features and can be left as they are.
 
 **Important:**
 - ⚠️ Never commit `.env` to GitHub
@@ -185,6 +199,11 @@ npm start
 
 ### "Cannot find module 'express'"
 - Run `npm install` in the correct folder
+
+### "JWT_SECRET is not set" (server exits at startup)
+- You have no `.env` file, or `JWT_SECRET` is empty in it
+- Run `cp .env.example .env` and set `JWT_SECRET` (see Step 3)
+- In production, the secret must be 32+ characters and not a placeholder
 
 ### "MongoDB connection failed"
 - MongoDB not running

@@ -1,10 +1,10 @@
+// Must stay the FIRST import: ES imports are hoisted, so this is what makes
+// .env load before any other module (e.g. jwt.js) reads process.env.
+import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
-import dotenv from 'dotenv';
 import { connectDB } from './src/config/database.js';
-
-// Load environment variables
-dotenv.config();
+import authRoutes from './src/routes/authRoutes.js';
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -68,7 +68,7 @@ app.get('/health', (req, res) => {
 });
 
 // API routes (will be added incrementally)
-// app.use('/api/auth', authRoutes);
+app.use('/api/auth', authRoutes);
 // app.use('/api/quiz', quizRoutes);
 // app.use('/api/tutor', tutorRoutes);
 // app.use('/api/learning', learningRoutes);
