@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+  <title>IDK.org</title>
+  <style>
+    :root {
+      --bg-light: #fafafa;
+      --bg-dark: #121212;
+      --text-light: #000000;
+      --text-dark: #ffffff;
+      --primary: #0066ff;
+    }
+    @media (prefers-color-scheme: dark) {
+      body { background: var(--bg-dark); color: var(--text-dark); }
+      .card { background: #1e1e1e; }
+    }
+    @media (prefers-color-scheme: light) {
+      body { background: var(--bg-light); color: var(--text-light); }
+      .card { background: #ffffff; }
+    }
+    body { margin:0; font-family: system-ui, sans-serif; display:flex; justify-content:center; align-items:start; min-height:100vh; }
+    .container { width:100%; max-width:400px; padding:1rem; }
+    .card { border-radius:8px; padding:1rem; margin-bottom:1rem; box-shadow:0 2px 4px rgba(0,0,0,0.1); }
+    button, input, select { font-size:1rem; }
+    button { background: var(--primary); color:#fff; border:none; border-radius:4px; padding:0.6rem 1rem; width:100%; margin-top:0.5rem; cursor:pointer; }
+    button:disabled { opacity:0.5; cursor:wait; }
+    .progress { margin-bottom:0.5rem; }
+    .chat { display:flex; flex-direction:column; gap:0.5rem; max-height:300px; overflow-y:auto; }
+    .bubble { padding:0.6rem 0.8rem; border-radius:12px; max-width:80%; }
+    .bubble.user { align-self:flex-end; background:#0066ff; color:#fff; }
+    .bubble.bot { align-self:flex-start; background:#e0e0e0; color:#000; }
+    .chips { display:flex; flex-wrap:wrap; gap:0.4rem; margin-top:0.5rem; }
+    .chip { background:#ddd; border-radius:16px; padding:0.3rem 0.6rem; font-size:0.9rem; cursor:pointer; }
+    .menu { display:flex; justify-content:space-around; }
+  </style>
+</head>
+<body>
+<div class="container">
+  <div id="message" class="card" style="display:none;"></div>
+  <div id="login" class="card">
+    <h2>Login / Register</h2>
+    <input type="text" id="name" placeholder="Name (optional for login)" />
+    <input type="email" id="email" placeholder="Email" required />
+    <input type="password" id="password" placeholder="Password" required />
+    <input type="password" id="confirm" placeholder="Confirm password" />
+    <button id="loginBtn">Login</button>
+    <button id="registerBtn">Register</button>
+  </div>
+  <div id="quiz" class="card" style="display:none;">
+    <h2>Quiz</h2>
+    <div class="progress" id="quizProgress"></div>
+    <div id="quizQuestion"></div>
+    <button id="nextBtn" disabled>Next</button>
+  </div>
+  <div id="result" class="card" style="display:none;">
+    <h2>Result</h2>
+    <div id="resultText"></div>
+  </div>
+  <div id="tutor" class="card" style="display:none;">
+    <h2>Tutor</h2>
+    <div class="chat" id="chat"></div>
+    <input type="text" id="msgInput" placeholder="Ask a question…" />
+    <button id="sendBtn">Send</button>
+    <div class="chips" id="suggestions"></div>
+  </div>
+  <div id="menu" class="card" style="display:none;">
+    <div class="menu">
+      <button id="againBtn">Take Quiz Again</button>
+      <button id="logoutBtn">Log out</button>
+    </div>
+  </div>
+</div>
+<script>
+// change to the deployed backend URL after deploy
+const API_URL = 'http://localhost:5000';
+
+function showMessage(text) { const el=document.getElementById('message'); el.textContent=text; el.style.display='block'; setTimeout(()=>{el.style.display='none';},4000); }
+
+function fetchWithTimeout(url, options={}) {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 60000);
+  return fetch(url, { ...options, signal: controller.signal })
+    .finally(() => clearTimeout(timeoutId));
+}
+
+function getToken(){ try { return localStorage.getItem('jwt'); } catch(e){ return null; } }
+function setToken(tok){ try { localStorage.setItem('jwt', tok); } catch(e){} }
+function clearToken(){ try { localStorage.removeItem('jwt'); } catch(e){} }
+
+function authHeaders(){ const t=getToken(); return t? { 'Authorization': `Bearer ${t}` } : {}; }
+
+function handleAuthError(resp){ if (resp.status===401){ logout(); } }
+
+function logout(){ clearToken(); showScreen('login'); }
+
+function showScreen(id){ ['login','quiz','result','tutor','menu'].forEach(s=>document.getElementById(s).style.display='none'); document.getElementById(id).style.display='block'; document.getElementById('message').style.display='none'; }
+
+function login(){
+  const email=document.getElementById('email').value.trim();
+  const password=document.getElementById('password').value;
+  showMessage('Waking up the server, this can take up to a minute on the free plan…');
+  fetchWithTimeout(`${API_URL}/api/auth/login`,{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({email,password})
+  }).then(r=>{ if(!r.ok){ return r.json().then(j=>{ throw new Error(j.message||'Login failed');}); } return r.json(); })
+    .then(data=>{ setToken(data.token); initApp(); })
+    .catch(err=>{ showMessage(err.message); });
+}
+function register(){
+  const name=document.getElementById('name').value.trim();
+  const email=document.getElementById('email').value.trim();
+  const password=document.getElementById('password').value;
+  const confirm=document.getElementById('confirm').value;
+  if(password!==confirm){ showMessage('Passwords do not match'); return; }
+  showMessage('Waking up the server, this can take up to a minute on the free plan…');
+  fetchWithTimeout(`${API_URL}/api/auth/register`,{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({name,email,password})
+  }).then(r=>{ if(!r.ok){ return r.json().then(j=>{ throw new Error(j.message||'Register failed');}); } return r.json(); })
+    .then(data=>{ setToken(data.token); initApp(); })
+    .catch(err=>{ showMessage(err.message); });
+}
+
+function initApp(){ showScreen('quiz'); loadQuiz(); }
+
+let quizData=[]; let answers=[]; let currentIdx=0;
+function loadQuiz(){
+  showMessage('Waking up the server, this can take up to a minute on the free plan…');
+  fetchWithTimeout(`${API_URL}/api/quiz/questions`,{ headers:{...authHeaders()} })
+    .then(r=>{ handleAuthError(r); if(!r.ok){ return r.json().then(j=>{ throw new Error(j.message||'Failed to load questions');}); } return r.json(); })
+    .then(data=>{ quizData=data.questions; currentIdx=0; answers=[]; renderQuestion(); })
+    .catch(err=>{ showMessage(err.message); });
+}
+function renderQuestion(){
+  const q=quizData[currentIdx];
+  const container=document.getElementById('quizQuestion');
+  container.replaceChildren(); // safe because we control content
+  const qEl=document.createElement('div');
+  qEl.textContent=`${currentIdx+1}. ${q.question}`;
+  container.appendChild(qEl);
+  q.options.forEach(opt=>{
+    const btn=document.createElement('button');
+    btn.textContent=opt;
+    btn.style.width='100%';
+    btn.onclick=()=>{ answers[currentIdx]=opt; document.querySelectorAll('#quizQuestion button').forEach(b=>b.disabled=true); document.getElementById('nextBtn').disabled=false; };
+    container.appendChild(btn);
+  });
+  document.getElementById('quizProgress').textContent=`${currentIdx+1} of ${quizData.length}`;
+  document.getElementById('nextBtn').disabled=true;
+}
+function nextStep(){
+  if(currentIdx<quizData.length-1){ currentIdx++; renderQuestion(); }
+  else { submitQuiz(); }
+}
+function submitQuiz(){
+  showMessage('Waking up the server, this can take up to a minute on the free plan…');
+  fetchWithTimeout(`${API_URL}/api/quiz/submit`,{
+    method:'POST',
+    headers:{'Content-Type':'application/json', ...authHeaders()},
+    body:JSON.stringify({answers})
+  }).then(r=>{ handleAuthError(r); if(!r.ok){ return r.json().then(j=>{ throw new Error(j.message||'Submit failed');}); } return r.json(); })
+    .then(res=>{ showScreen('result'); const txt=`Primary: ${res.primary}\n${res.secondary ? 'Secondary: ' + res.secondary + '\n' : ''}This is an everyday‑preference quiz, not a medical diagnosis.`; document.getElementById('resultText').textContent=txt; })
+    .catch(err=>{ showMessage(err.message); });
+}
+
+function initTutor(){ showScreen('tutor'); document.getElementById('chat').replaceChildren(); // safe clear }
+function sendMessage(){
+  const input=document.getElementById('msgInput');
+  const msg=input.value.trim();
+  if(!msg) return;
+  addBubble('user',msg);
+  input.value='';
+  document.getElementById('sendBtn').disabled=true;
+  showMessage('Waking up the server, this can take up to a minute on the free plan…');
+  fetchWithTimeout(`${API_URL}/api/tutor/chat`,{
+    method:'POST',
+    headers:{'Content-Type':'application/json', ...authHeaders()},
+    body:JSON.stringify({message:msg})
+  }).then(r=>{ handleAuthError(r); if(!r.ok){ return r.json().then(j=>{ throw new Error(j.message||'Tutor failed');}); } return r.json(); })
+    .then(res=>{
+      addBubble('bot',res.tutorMessage);
+      const steps=document.createElement('ul');
+      res.steps.forEach(s=>{ const li=document.createElement('li'); li.textContent=s; steps.appendChild(li); });
+      document.getElementById('chat').appendChild(steps);
+      const suggestions=document.getElementById('suggestions');
+      suggestions.replaceChildren(); // safe clear
+      res.suggestions.forEach(sug=>{
+        const chip=document.createElement('div');
+        chip.className='chip';
+        chip.textContent=sug;
+        chip.onclick=()=>{ document.getElementById('msgInput').value=sug; };
+        suggestions.appendChild(chip);
+      });
+    })
+    .catch(err=>{ showMessage(err.message); })
+    .finally(()=>{ document.getElementById('sendBtn').disabled=false; });
+}
+function addBubble(type,text){
+  const chat=document.getElementById('chat');
+  const b=document.createElement('div');
+  b.className='bubble '+type;
+  b.textContent=text;
+  chat.appendChild(b);
+  chat.scrollTop=chat.scrollHeight;
+}
+
+// Event listeners
+document.getElementById('loginBtn').onclick=login;
+document.getElementById('registerBtn').onclick=register;
+document.getElementById('nextBtn').onclick=nextStep;
+document.getElementById('sendBtn').onclick=sendMessage;
+document.getElementById('againBtn').onclick=()=>{ showScreen('quiz'); loadQuiz(); };
+document.getElementById('logoutBtn').onclick=logout;
+
+// Init
+if(getToken()) initApp(); else showScreen('login');
+void 0;
+</script>
+</body>
+</html>
