@@ -138,72 +138,54 @@ Get a token by logging in at `/auth/login`.
 ### QUIZ
 
 #### GET `/quiz/questions`
-**Description:** Get all 10 diagnostic quiz questions
+**Description:** Get all 10 learning preference quiz questions. Public endpoint.
+**Authorization:** None
 
 **Request:**
 ```
-GET /quiz/questions
+GET /api/quiz/questions
 ```
 
 **Response (200):**
 ```json
 {
   "success": true,
+  "totalQuestions": 10,
   "questions": [
     {
       "id": 1,
-      "question": "When learning something new, do you prefer:",
-      "type": "multiChoice",
+      "question": "When learning how to use a new phone or computer app, what helps you get comfortable fastest?",
       "options": [
-        {
-          "id": "a",
-          "text": "Visual diagrams and pictures",
-          "weight": {"visual": 1.0, "auditory": 0, "linguistic": 0}
-        },
-        {
-          "id": "b",
-          "text": "Listening to explanations",
-          "weight": {"visual": 0, "auditory": 1.0, "linguistic": 0}
-        },
-        {
-          "id": "c",
-          "text": "Reading detailed text",
-          "weight": {"visual": 0, "auditory": 0, "linguistic": 1.0}
-        },
-        {
-          "id": "d",
-          "text": "Hands-on practice",
-          "weight": {"visual": 0.5, "auditory": 0, "linguistic": 0.5}
-        }
+        { "id": "a", "text": "Watching a screen recording or diagram of the interface" },
+        { "id": "b", "text": "Tapping around, trying buttons, and testing what happens directly" },
+        { "id": "c", "text": "Reading step-by-step instructions or online documentation" },
+        { "id": "d", "text": "Listening to someone explain how the main features work" }
       ]
     }
-  ],
-  "totalQuestions": 10
+  ]
 }
 ```
 
 ---
 
 #### POST `/quiz/submit`
-**Description:** Submit quiz answers and calculate user's Ideotype
-
-**Authorization:** None (quiz is public)
+**Description:** Submit answers for all 10 questions, compute learning preference scores, and save to profile.
+**Authorization:** Required (Bearer token)
 
 **Request:**
 ```json
 {
-  "email": "user@example.com",
   "answers": [
-    {"questionId": 1, "selectedOption": "a"},
-    {"questionId": 2, "selectedOption": "c"},
-    {"questionId": 3, "selectedOption": "b"},
-    {"questionId": 4, "selectedOption": "d"},
-    {"questionId": 5, "selectedOption": "a"},
-    {"questionId": 6, "selectedOption": "a"},
-    {"questionId": 7, "selectedOption": "b"},
-    {"questionId": 8, "selectedOption": "c"},
-    {"questionId": 9, "selectedOption": "a"},
-    {"questionId": 10, "selectedOption": "b"}
+    { "questionId": 1, "optionId": "a" },
+    { "questionId": 2, "optionId": "b" },
+    { "questionId": 3, "optionId": "d" },
+    { "questionId": 4, "optionId": "c" },
+    { "questionId": 5, "optionId": "a" },
+    { "questionId": 6, "optionId": "c" },
+    { "questionId": 7, "optionId": "b" },
+    { "questionId": 8, "optionId": "b" },
+    { "questionId": 9, "optionId": "c" },
+    { "questionId": 10, "optionId": "d" }
   ]
 }
 ```
@@ -213,28 +195,59 @@ GET /quiz/questions
 {
   "success": true,
   "message": "Quiz submitted successfully",
-  "ideotype": {
-    "profile": "Visual-Linguistic Hybrid",
+  "result": {
+    "primary": "visual",
+    "secondary": null,
+    "isTied": false,
     "scores": {
-      "visual": 0.75,
-      "auditory": 0.35,
-      "linguistic": 0.70
+      "visual": 10,
+      "auditory": 0,
+      "readingWriting": 0,
+      "handsOn": 0
     },
-    "dominantChannel": "visual",
-    "secondaryChannel": "linguistic",
-    "archetype": "The Visual Thinker",
-    "description": "You process information best through visual representations...",
-    "recommendations": [
-      "Use diagrams and mind maps",
-      "Watch educational videos",
-      "Color-code your notes",
-      "Use visual metaphors"
-    ]
+    "takenAt": "2026-10-18T07:30:00.000Z"
   }
 }
 ```
 
+**Errors:**
+- `400` - Invalid answers (missing, fewer/more than 10, duplicate questionId, unknown questionId or optionId).
+- `401` - Missing or invalid JWT token.
+
 ---
+
+#### GET `/quiz/result`
+**Description:** Retrieve the authenticated user's saved quiz result.
+**Authorization:** Required (Bearer token)
+
+**Request:**
+```
+GET /api/quiz/result
+```
+
+**Response (200):**
+```json
+{
+  "success": true,
+  "result": {
+    "primary": "visual",
+    "secondary": null,
+    "isTied": false,
+    "scores": {
+      "visual": 10,
+      "auditory": 0,
+      "readingWriting": 0,
+      "handsOn": 0
+    },
+    "takenAt": "2026-10-18T07:30:00.000Z"
+  }
+}
+```
+
+**Errors:**
+- `401` - Missing or invalid JWT token.
+- `404` - User has not yet completed the quiz (`QUIZ_NOT_TAKEN`).
+
 
 ### AI TUTOR
 

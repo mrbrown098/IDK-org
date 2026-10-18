@@ -3,6 +3,7 @@ import cors from 'cors';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import authRoutes from './routes/authRoutes.js';
+import quizRoutes from './routes/quizRoutes.js';
 
 // The Express app lives here (no listen(), no database connection) so tests can
 // import it directly. server.js is responsible for loading .env, connecting to
@@ -111,7 +112,7 @@ app.get('/health', (req, res) => {
 app.use('/api/auth/register', authLimiter);
 app.use('/api/auth/login', authLimiter);
 app.use('/api/auth', authRoutes);
-// app.use('/api/quiz', quizRoutes);
+app.use('/api/quiz', quizRoutes);
 // app.use('/api/tutor', tutorRoutes);
 // app.use('/api/learning', learningRoutes);
 // app.use('/api/user', userRoutes);

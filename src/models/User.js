@@ -26,18 +26,16 @@ const userSchema = new mongoose.Schema(
       select: false // Don't return password in queries by default
     },
     ideotype: {
-      profile: String,
+      primary: String,
+      secondary: String,
+      isTied: Boolean,
       scores: {
-        visual: Number,
-        auditory: Number,
-        linguistic: Number
+        visual: { type: Number, default: 0 },
+        auditory: { type: Number, default: 0 },
+        readingWriting: { type: Number, default: 0 },
+        handsOn: { type: Number, default: 0 }
       },
-      dominantChannel: String,
-      secondaryChannel: String,
-      archetype: String,
-      description: String,
-      recommendations: [String],
-      completedAt: Date
+      takenAt: Date
     },
     learningPreferences: {
       pace: {
