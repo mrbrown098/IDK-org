@@ -4,6 +4,7 @@ import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import authRoutes from './routes/authRoutes.js';
 import quizRoutes from './routes/quizRoutes.js';
+import tutorRoutes from './routes/tutorRoutes.js';
 
 // The Express app lives here (no listen(), no database connection) so tests can
 // import it directly. server.js is responsible for loading .env, connecting to
@@ -85,6 +86,29 @@ const authLimiter = rateLimit({
   }
 });
 
+// Rate limiting for the tutor (stops spam; becomes the cost guard if a paid AI
+// provider is added later)
+const tutorLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: () => {
+    const parsed = parseInt(process.env.TUTOR_RATE_LIMIT_MAX, 10);
+    return Number.isFinite(parsed) && parsed > 0 ? parsed : 60;
+  },
+  statusCode: 429,
+  message: {
+    success: false,
+    message: 'Too many messages, please slow down and try again later.'
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+  skip: () => {
+    if (process.env.NODE_ENV === 'test' && !process.env.ENABLE_TUTOR_RATE_LIMIT_TEST) {
+      return true;
+    }
+    return false;
+  }
+});
+
 // ============================================
 // ROUTES
 // ============================================
@@ -113,7 +137,8 @@ app.use('/api/auth/register', authLimiter);
 app.use('/api/auth/login', authLimiter);
 app.use('/api/auth', authRoutes);
 app.use('/api/quiz', quizRoutes);
-// app.use('/api/tutor', tutorRoutes);
+app.use('/api/tutor', tutorLimiter);
+app.use('/api/tutor', tutorRoutes);
 // app.use('/api/learning', learningRoutes);
 // app.use('/api/user', userRoutes);
 

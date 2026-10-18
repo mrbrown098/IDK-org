@@ -44,10 +44,10 @@ Get a token by logging in at `/auth/login`.
 - `POST /quiz/submit` - Submit quiz answers and get Ideotype
 - `GET /quiz/result` - Get user's last quiz result (protected)
 
-### AI Tutor Routes
-- `POST /tutor/chat` - Send message to AI tutor (protected)
-- `GET /tutor/history` - Get chat history (protected)
-- `POST /tutor/subject` - Change learning subject (protected)
+### Tutor Routes
+- `POST /tutor/chat` - Send a message to the study coach (protected)
+- `GET /tutor/history` - Planned, not built yet
+- `POST /tutor/subject` - Planned, not built yet
 
 ### Learning Routes
 - `GET /learning/progress` - Get learning progress (protected)
@@ -249,69 +249,61 @@ GET /api/quiz/result
 - `404` - User has not yet completed the quiz (`QUIZ_NOT_TAKEN`).
 
 
-### AI TUTOR
+### TUTOR (STUDY COACH)
+
+The tutor is a **rule-based study coach**, not an AI model. It costs nothing to run and cannot look up facts or answer subject questions. It reads the message for a simple intent (stuck, revise, plan, explain, greeting) and replies with study strategies matched to the learning preference saved by the quiz. Chat history is not stored.
 
 #### POST `/tutor/chat`
-**Description:** Send a message to your AI tutor
+**Description:** Send a message to the study coach
 
 **Authorization:** Required (Bearer token)
 
 **Request:**
 ```json
 {
-  "message": "Explain what photosynthesis is in a way I can visualize",
+  "message": "I'm stuck on photosynthesis",
   "subject": "biology",
   "topic": "photosynthesis"
 }
 ```
+
+- `message` (required): text, 1-1000 characters.
+- `subject`, `topic` (optional): text, up to 100 characters. Used to name the topic in the reply.
 
 **Response (200):**
 ```json
 {
   "success": true,
   "response": {
-    "id": "session_123",
-    "tutorMessage": "Imagine a solar panel on your roof... Photosynthesis works similarly. Here's a diagram...",
-    "suggestions": [
-      "Show me an example",
-      "Test my understanding",
-      "Slow down",
-      "Speed up"
+    "tutorMessage": "Feeling stuck on photosynthesis is normal...",
+    "steps": [
+      "Draw a quick diagram or mind map of photosynthesis...",
+      "Use colours: one colour for key words and another for examples.",
+      "Try one small example of photosynthesis yourself before reading more about it."
     ],
-    "timestamp": "2026-06-02T10:35:00Z"
+    "suggestions": ["Help me revise", "Help me make a study plan", "How can I learn this?"],
+    "mode": "study-coach",
+    "intent": "stuck",
+    "preference": "visual",
+    "secondaryPreference": "handsOn",
+    "quizTaken": true,
+    "timestamp": "2026-06-02T10:35:00.000Z"
   }
 }
 ```
 
----
+- `intent`: one of `greeting`, `stuck`, `revise`, `plan`, `explain`, `general`.
+- `preference` / `secondaryPreference`: from the saved quiz result, or `null`. If the quiz has not been taken, `quizTaken` is `false` and general tips are returned.
+- `steps` is empty for a `greeting`.
 
-#### GET `/tutor/history`
-**Description:** Get chat history with AI tutor
-
-**Authorization:** Required (Bearer token)
-
-**Request:**
-```
-GET /tutor/history?limit=50&subject=biology
-```
-
-**Response (200):**
-```json
-{
-  "success": true,
-  "history": [
-    {
-      "id": "msg_1",
-      "userMessage": "What is photosynthesis?",
-      "tutorResponse": "Photosynthesis is the process...",
-      "subject": "biology",
-      "timestamp": "2026-06-02T10:30:00Z"
-    }
-  ],
-  "totalMessages": 2,
-  "subject": "biology"
-}
-```
+**Errors:**
+- `400` `INVALID_MESSAGE` - message missing, blank or not text.
+- `400` `MESSAGE_TOO_LONG` - message over 1000 characters.
+- `400` `INVALID_FIELD` - subject or topic not text, or over 100 characters.
+- `401` - missing or invalid token.
+- `404` `USER_NOT_FOUND` - the token's user no longer exists.
+- `429` - too many messages (default 60 per 15 minutes per IP; set `TUTOR_RATE_LIMIT_MAX` to change).
+- `500` `TUTOR_CHAT_ERROR` - unexpected server error.
 
 ---
 
@@ -406,7 +398,7 @@ To prevent abuse:
 ```
 - Unauthenticated: 100 requests/hour
 - Authenticated: 1000 requests/hour
-- AI Tutor: 100 chats/day
+- Tutor chat: 60 messages per 15 minutes per IP (TUTOR_RATE_LIMIT_MAX)
 ```
 
 ---
