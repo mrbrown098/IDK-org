@@ -9,7 +9,9 @@ export const connectDB = async () => {
     const connection = await mongoose.connect(mongoURI, {
       dbName: dbName,
       retryWrites: true,
-      w: 'majority'
+      w: 'majority',
+      // fail fast so a serverless request does not hang on an unreachable database
+      serverSelectionTimeoutMS: 8000
     });
 
     console.log(`✅ MongoDB Connected: ${connection.connection.host}`);

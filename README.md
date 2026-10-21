@@ -106,7 +106,7 @@ Full request and response details are in [API.md](API.md).
 - A single-page web client in plain HTML, CSS and JavaScript (no framework, no build step)
 - Vitest and supertest for tests
 
-Planned hosting: Render for the API, MongoDB Atlas for the database, GitHub Pages for the web app, and an Android app wrapped from the web app.
+Hosting plan: the web app and the API run as one Vercel project, the database is on MongoDB Atlas, and an Android app is wrapped from the web app later.
 
 ## Roadmap
 
