@@ -35,6 +35,21 @@ const userSchema = new mongoose.Schema(
         readingWriting: { type: Number, default: 0 },
         handsOn: { type: Number, default: 0 }
       },
+      social: {
+        group: { type: Number, default: 0 },
+        solo: { type: Number, default: 0 }
+      },
+      socialStyle: {
+        type: String,
+        enum: ['group', 'solo', 'flexible']
+      },
+      percentages: {
+        visual: { type: Number, default: 0 },
+        auditory: { type: Number, default: 0 },
+        readingWriting: { type: Number, default: 0 },
+        handsOn: { type: Number, default: 0 },
+        social: { type: Number, default: 0 }
+      },
       takenAt: Date
     },
     learningPreferences: {

@@ -30,17 +30,17 @@ export const getQuestions = (req, res) => {
 };
 
 // POST /api/quiz/submit
-// Protected endpoint. Validates 10 answers, calculates scores, determines primary preference,
-// breaks ties deterministically, and saves result on user profile.
+// Protected endpoint. Validates 15 answers, calculates scores and social dimensions,
+// determines primary preference, breaks ties deterministically, and saves result on user profile.
 export const submitQuiz = async (req, res) => {
   try {
     const { answers } = req.body;
 
     // Validate answers array structure
-    if (!answers || !Array.isArray(answers) || answers.length !== 10) {
+    if (!answers || !Array.isArray(answers) || answers.length !== 15) {
       return res.status(400).json({
         success: false,
-        message: 'Exactly 10 answers are required',
+        message: 'Exactly 15 answers are required',
         code: 'INVALID_ANSWERS_COUNT'
       });
     }
@@ -52,6 +52,10 @@ export const submitQuiz = async (req, res) => {
       auditory: 0,
       readingWriting: 0,
       handsOn: 0
+    };
+    const social = {
+      group: 0,
+      solo: 0
     };
 
     for (const item of answers) {
@@ -100,7 +104,11 @@ export const submitQuiz = async (req, res) => {
         });
       }
 
-      scores[selectedOption.preference]++;
+      if (selectedOption.preference) {
+        scores[selectedOption.preference]++;
+      } else if (selectedOption.social) {
+        social[selectedOption.social]++;
+      }
     }
 
     // Determine ranking and tie-break deterministically (higher score first, then alphabetical)
@@ -112,11 +120,32 @@ export const submitQuiz = async (req, res) => {
     });
 
     const isTied = scores[sorted[0]] === scores[sorted[1]];
+
+    let socialStyle = 'flexible';
+    if (social.group >= 4) {
+      socialStyle = 'group';
+    } else if (social.solo >= 4) {
+      socialStyle = 'solo';
+    } else {
+      socialStyle = 'flexible';
+    }
+
+    const percentages = {
+      visual: Math.round((scores.visual / 10) * 100),
+      auditory: Math.round((scores.auditory / 10) * 100),
+      readingWriting: Math.round((scores.readingWriting / 10) * 100),
+      handsOn: Math.round((scores.handsOn / 10) * 100),
+      social: Math.round((social.group / 5) * 100)
+    };
+
     const result = {
       primary: sorted[0],
       secondary: isTied ? sorted[1] : (scores[sorted[1]] > 0 ? sorted[1] : null),
       isTied,
       scores,
+      social,
+      socialStyle,
+      percentages,
       takenAt: new Date()
     };
 
