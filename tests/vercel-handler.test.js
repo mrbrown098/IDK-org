@@ -17,7 +17,7 @@ describe('vercel entry point', () => {
     const res = await request(handler).get('/api/quiz/questions');
 
     expect(res.status).toBe(200);
-    expect(res.body.questions).toHaveLength(10);
+    expect(res.body.questions).toHaveLength(15);
   });
 
   it('keeps the 404 response for unknown routes', async () => {
