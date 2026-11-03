@@ -143,7 +143,15 @@ function renderQuestion() {
     };
     container.appendChild(btn);
   });
-  document.getElementById('quizProgress').textContent = `${currentIdx + 1} of ${quizData.length}`;
+  const progressEl = document.getElementById('quizProgress');
+  progressEl.replaceChildren();
+  const progressText = document.createElement('span');
+  progressText.textContent = `${currentIdx + 1} of ${quizData.length} `;
+  const progressBar = document.createElement('progress');
+  progressBar.value = currentIdx + 1;
+  progressBar.max = quizData.length;
+  progressEl.appendChild(progressText);
+  progressEl.appendChild(progressBar);
   document.getElementById('nextBtn').disabled = true;
 }
 

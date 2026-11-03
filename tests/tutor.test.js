@@ -34,7 +34,12 @@ const allVisualAnswers = [
   { questionId: 7, optionId: 'b' },
   { questionId: 8, optionId: 'b' },
   { questionId: 9, optionId: 'c' },
-  { questionId: 10, optionId: 'd' }
+  { questionId: 10, optionId: 'd' },
+  { questionId: 11, optionId: 'a' },
+  { questionId: 12, optionId: 'a' },
+  { questionId: 13, optionId: 'a' },
+  { questionId: 14, optionId: 'a' },
+  { questionId: 15, optionId: 'a' }
 ];
 
 // 5 visual + 5 auditory (tie)
@@ -48,7 +53,12 @@ const tiedAnswers = [
   { questionId: 7, optionId: 'b' },
   { questionId: 8, optionId: 'c' },
   { questionId: 9, optionId: 'c' },
-  { questionId: 10, optionId: 'b' }
+  { questionId: 10, optionId: 'b' },
+  { questionId: 11, optionId: 'a' },
+  { questionId: 12, optionId: 'a' },
+  { questionId: 13, optionId: 'a' },
+  { questionId: 14, optionId: 'a' },
+  { questionId: 15, optionId: 'a' }
 ];
 
 const takeQuiz = (token, answers) =>

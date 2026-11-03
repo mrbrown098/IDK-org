@@ -3,6 +3,7 @@
 // Note: This questionnaire indicates everyday preferences and is not a clinical or scientific diagnosis.
 
 export const PREFERENCES = ['visual', 'auditory', 'readingWriting', 'handsOn'];
+export const SOCIAL = ['group', 'solo'];
 
 export const quizQuestions = [
   {
@@ -103,6 +104,46 @@ export const quizQuestions = [
       { id: 'b', text: 'Delivering the spoken presentation and answering questions', preference: 'auditory' },
       { id: 'c', text: 'Writing and editing the project document and citations', preference: 'readingWriting' },
       { id: 'd', text: 'Designing the layout, graphics, and visual slides', preference: 'visual' }
+    ]
+  },
+  {
+    id: 11,
+    question: 'When preparing for a major exam or test, which study setup helps you focus best?',
+    options: [
+      { id: 'a', text: 'Studying in a group where we quiz each other and discuss tricky topics', social: 'group' },
+      { id: 'b', text: 'Studying by yourself in a quiet space without distractions', social: 'solo' }
+    ]
+  },
+  {
+    id: 12,
+    question: 'When you get stuck on a difficult assignment or work problem, what do you usually do first?',
+    options: [
+      { id: 'a', text: 'Reach out to a classmate or coworker to talk through the problem together', social: 'group' },
+      { id: 'b', text: 'Keep working through it on your own until you find a solution', social: 'solo' }
+    ]
+  },
+  {
+    id: 13,
+    question: 'To make sure you truly understand a newly learned topic, which activity do you prefer?',
+    options: [
+      { id: 'a', text: 'Explaining or teaching the material to a friend or study partner', social: 'group' },
+      { id: 'b', text: 'Reviewing your notes and testing your knowledge in private', social: 'solo' }
+    ]
+  },
+  {
+    id: 14,
+    question: 'When starting a new project, which way of generating ideas feels most productive?',
+    options: [
+      { id: 'a', text: 'Brainstorming and bouncing thoughts back and forth with a team', social: 'group' },
+      { id: 'b', text: 'Thinking through the plan independently before sharing it with others', social: 'solo' }
+    ]
+  },
+  {
+    id: 15,
+    question: 'During a workshop or training session, which format helps you stay most engaged?',
+    options: [
+      { id: 'a', text: 'Interactive partner activities and open group discussions', social: 'group' },
+      { id: 'b', text: 'Individual practice exercises with time to reflect quietly', social: 'solo' }
     ]
   }
 ];
