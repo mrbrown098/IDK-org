@@ -19,7 +19,7 @@ This is an honest snapshot, not a pitch deck.
 | Area | State |
 | --- | --- |
 | Sign up, log in, JWT sessions | Working |
-| 10-question learning preference quiz | Working |
+| 15 questions, 5 dimensions | Working |
 | Result: primary and secondary preference, tie handling | Working |
 | Study coach chat (rule-based, free to run) | Working |
 | Mobile-friendly web app (plain HTML, CSS, JavaScript) | Working locally |
