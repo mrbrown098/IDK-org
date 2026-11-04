@@ -2,35 +2,49 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#0a0e1f" />
   <title>IDK.org</title>
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
 <div class="container">
-  <div id="message" class="card" style="display:none;"></div>
+  <div class="brand">
+    <div class="logo">IDK.org</div>
+    <p class="tag">Intellect Driven Knowledge</p>
+  </div>
+  <div id="message" class="card" style="display:none;" role="status"></div>
   <div id="login" class="card">
     <h2>Login / Register</h2>
-    <input type="text" id="name" placeholder="Name (optional for login)" />
-    <input type="email" id="email" placeholder="Email" required />
-    <input type="password" id="password" placeholder="Password" required />
-    <input type="password" id="confirm" placeholder="Confirm password" />
+    <input type="text" id="name" placeholder="Name (optional for login)" autocomplete="name" />
+    <input type="email" id="email" placeholder="Email" required autocomplete="email" />
+    <input type="password" id="password" placeholder="Password" required autocomplete="current-password" />
+    <input type="password" id="confirm" placeholder="Confirm password" autocomplete="new-password" />
     <button id="loginBtn">Login</button>
-    <button id="registerBtn">Register</button>
+    <button id="registerBtn" class="ghost">Register</button>
   </div>
   <div id="quiz" class="card" style="display:none;">
-    <h2>Quiz</h2>
-    <div class="progress" id="quizProgress"></div>
-    <div id="quizQuestion"></div>
+    <h2>Find your Learnprint</h2>
+    <div class="progress-row">
+      <progress id="quizBar" value="0" max="15"></progress>
+      <div class="count" id="quizProgress"></div>
+    </div>
+    <div id="quizQuestion" class="q-wrap"></div>
     <button id="nextBtn" disabled>Next</button>
   </div>
   <div id="result" class="card" style="display:none;">
-    <h2>Result</h2>
+    <div class="learnprint-head">
+      <div class="kicker">Your</div>
+      <h2>Learnprint</h2>
+    </div>
+    <div id="radarChart"></div>
     <div id="resultText"></div>
-    <button id="toTutorBtn">Chat with the study coach</button>
+    <button id="shareBtn">Share my Learnprint</button>
+    <button id="toTutorBtn" class="ghost">Continue</button>
+    <button id="retakeBtn" class="ghost">Retake the quiz</button>
   </div>
   <div id="tutor" class="card" style="display:none;">
-    <h2>Tutor</h2>
+    <h2>Study coach</h2>
     <div class="chat" id="chat"></div>
     <input type="text" id="msgInput" placeholder="Ask a question…" />
     <button id="sendBtn">Send</button>
@@ -38,12 +52,14 @@
   </div>
   <div id="menu" class="card" style="display:none;">
     <div class="menu">
-      <button id="tutorBtn">Study coach</button>
-      <button id="againBtn">Take Quiz Again</button>
-      <button id="logoutBtn">Log out</button>
+      <button id="learnprintBtn">My Learnprint</button>
+      <button id="tutorBtn" class="ghost">Study coach</button>
+      <button id="againBtn" class="ghost">Take Quiz Again</button>
+      <button id="logoutBtn" class="ghost">Log out</button>
     </div>
   </div>
 </div>
+<div id="toast" role="status" aria-live="polite"></div>
 <script src="config.js"></script>
 <script src="app.js"></script>
 </body>
