@@ -159,6 +159,22 @@ button.ghost {
 }
 button.ghost:hover { background: var(--glass-strong); box-shadow: none; }
 
+/* Login: segmented control, fields, errors */
+.seg { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; padding: 4px; margin-bottom: 1.1rem; background: rgba(0, 0, 0, 0.28); border: 1px solid var(--line); border-radius: 999px; }
+button.seg-btn { margin: 0; min-height: 42px; padding: 0.4rem 0.6rem; font-size: 0.95rem; font-weight: 600; color: var(--ink-soft); background: transparent; border-radius: 999px; box-shadow: none; }
+button.seg-btn:hover { box-shadow: none; color: var(--ink); }
+button.seg-btn.active { color: #fff; background: var(--accent); box-shadow: 0 6px 16px rgba(60, 90, 255, 0.35); }
+.sub { margin: -0.35rem 0 0.4rem; color: var(--ink-soft); font-size: 0.95rem; }
+.field { margin-top: 0.15rem; }
+.field[hidden] { display: none; }
+input.invalid { border-color: #ff7aa8; box-shadow: 0 0 0 3px rgba(255, 92, 168, 0.18); }
+.err { min-height: 0; margin: 0.3rem 0.2rem 0; font-size: 0.82rem; color: #ff9cc2; }
+.err:empty { display: none; }
+.pw { position: relative; margin-top: 0.6rem; }
+.pw input { margin-top: 0; padding-right: 4.6rem; }
+button.pw-toggle { position: absolute; right: 6px; top: 6px; bottom: 6px; width: auto; min-height: 0; margin: 0; padding: 0 0.8rem; font-size: 0.85rem; font-weight: 600; color: var(--ink-soft); background: transparent; box-shadow: none; border-radius: 10px; }
+button.pw-toggle:hover { color: var(--ink); background: var(--glass-strong); box-shadow: none; }
+
 /* Top bar with Menu button */
 .topbar { display: flex; justify-content: flex-end; margin: -0.25rem 0 0.25rem; }
 .topbar button { width: auto; min-height: 40px; margin: 0; padding: 0.35rem 1rem; font-size: 0.92rem; }

@@ -15,13 +15,34 @@
   </div>
   <div id="message" class="card" style="display:none;" role="status"></div>
   <div id="login" class="card">
-    <h2>Login / Register</h2>
-    <input type="text" id="name" placeholder="Name (optional for login)" autocomplete="name" />
-    <input type="email" id="email" placeholder="Email" required autocomplete="email" />
-    <input type="password" id="password" placeholder="Password" required autocomplete="current-password" />
-    <input type="password" id="confirm" placeholder="Confirm password" autocomplete="new-password" />
-    <button id="loginBtn">Login</button>
-    <button id="registerBtn" class="ghost">Register</button>
+    <div class="seg" role="tablist" aria-label="Log in or create an account">
+      <button type="button" id="tabLogin" class="seg-btn active" role="tab" aria-selected="true">Log in</button>
+      <button type="button" id="tabRegister" class="seg-btn" role="tab" aria-selected="false">Create account</button>
+    </div>
+    <h2 id="loginTitle">Welcome back</h2>
+    <p class="sub" id="loginSub">Find how you learn best in 2 minutes.</p>
+    <form id="authForm" novalidate>
+      <div class="field" id="nameField" hidden>
+        <input type="text" id="name" placeholder="Your name" autocomplete="name" />
+        <div class="err" id="nameErr" role="alert"></div>
+      </div>
+      <div class="field">
+        <input type="email" id="email" placeholder="Email" autocomplete="email" />
+        <div class="err" id="emailErr" role="alert"></div>
+      </div>
+      <div class="field">
+        <div class="pw">
+          <input type="password" id="password" placeholder="Password" autocomplete="current-password" />
+          <button type="button" id="togglePw" class="pw-toggle" aria-label="Show password" aria-pressed="false">Show</button>
+        </div>
+        <div class="err" id="passwordErr" role="alert"></div>
+      </div>
+      <div class="field" id="confirmField" hidden>
+        <input type="password" id="confirm" placeholder="Confirm password" autocomplete="new-password" />
+        <div class="err" id="confirmErr" role="alert"></div>
+      </div>
+      <button type="submit" id="authBtn">Log in</button>
+    </form>
   </div>
   <div id="quiz" class="card" style="display:none;">
     <h2>Find your Learnprint</h2>
