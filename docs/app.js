@@ -86,7 +86,7 @@ function login() {
   const email = $('email').value.trim();
   const password = $('password').value;
   maybeShowWarmup();
-  fetchWithTimeout(`${window.IDK_CONFIG.API_URL}/api/auth/login`, {
+  return fetchWithTimeout(`${window.IDK_CONFIG.API_URL}/api/auth/login`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ email, password })
@@ -101,9 +101,9 @@ function register() {
   const email = $('email').value.trim();
   const password = $('password').value;
   const confirmPassword = $('confirm').value;
-  if (password !== confirmPassword) { showMessage('Passwords do not match'); return; }
+  if (password !== confirmPassword) { showMessage('Passwords do not match'); return Promise.resolve(); }
   maybeShowWarmup();
-  fetchWithTimeout(`${window.IDK_CONFIG.API_URL}/api/auth/register`, {
+  return fetchWithTimeout(`${window.IDK_CONFIG.API_URL}/api/auth/register`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ name, email, password, confirmPassword })
@@ -111,6 +111,77 @@ function register() {
     .then(r => { clearWarmup(); if (!r.ok) return r.json().then(j => { throw new Error(j.message || 'Register failed'); }); return r.json(); })
     .then(data => { setToken(data.token); initApp(); })
     .catch(err => showMessage(err.message));
+}
+
+
+/* ------------------------- Login form (tabs, validation) ------------------------- */
+
+let authMode = 'login';
+let authBusy = false;
+const AUTH_LABEL = { login: 'Log in', register: 'Create account' };
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+
+function setFieldError(inputId, errId, message) {
+  $(errId).textContent = message || '';
+  $(inputId).classList.toggle('invalid', Boolean(message));
+}
+function clearAuthErrors() {
+  [['name', 'nameErr'], ['email', 'emailErr'], ['password', 'passwordErr'], ['confirm', 'confirmErr']]
+    .forEach(([i, e]) => setFieldError(i, e, ''));
+}
+
+function setAuthMode(mode) {
+  authMode = mode;
+  const reg = mode === 'register';
+  $('tabLogin').classList.toggle('active', !reg);
+  $('tabRegister').classList.toggle('active', reg);
+  $('tabLogin').setAttribute('aria-selected', String(!reg));
+  $('tabRegister').setAttribute('aria-selected', String(reg));
+  $('nameField').hidden = !reg;
+  $('confirmField').hidden = !reg;
+  $('loginTitle').textContent = reg ? 'Create your account' : 'Welcome back';
+  $('password').setAttribute('autocomplete', reg ? 'new-password' : 'current-password');
+  $('authBtn').textContent = AUTH_LABEL[mode];
+  clearAuthErrors();
+}
+
+function setAuthBusy(busy) {
+  authBusy = busy;
+  $('authBtn').disabled = busy;
+  $('authBtn').textContent = busy ? 'Please wait...' : AUTH_LABEL[authMode];
+}
+
+function validateAuth() {
+  clearAuthErrors();
+  let ok = true;
+  const email = $('email').value.trim();
+  const password = $('password').value;
+  if (!EMAIL_RE.test(email)) { setFieldError('email', 'emailErr', 'Enter a valid email address.'); ok = false; }
+  if (authMode === 'register') {
+    if (password.length < 8) { setFieldError('password', 'passwordErr', 'Use at least 8 characters.'); ok = false; }
+    if ($('confirm').value !== password) { setFieldError('confirm', 'confirmErr', 'Passwords do not match.'); ok = false; }
+  } else if (!password) {
+    setFieldError('password', 'passwordErr', 'Enter your password.');
+    ok = false;
+  }
+  return ok;
+}
+
+function submitAuth(e) {
+  e.preventDefault();
+  if (authBusy || !validateAuth()) return;
+  setAuthBusy(true);
+  const run = authMode === 'register' ? register() : login();
+  Promise.resolve(run).finally(() => setAuthBusy(false));
+}
+
+function togglePassword() {
+  const input = $('password');
+  const show = input.type === 'password';
+  input.type = show ? 'text' : 'password';
+  $('togglePw').textContent = show ? 'Hide' : 'Show';
+  $('togglePw').setAttribute('aria-label', show ? 'Hide password' : 'Show password');
+  $('togglePw').setAttribute('aria-pressed', String(show));
 }
 
 // Loads the saved result and shows the Learnprint screen. If there is no result yet, starts the quiz.
@@ -574,8 +645,12 @@ function addBubble(type, text) {
 }
 
 // Event listeners
-$('loginBtn').onclick = login;
-$('registerBtn').onclick = register;
+$('authForm').addEventListener('submit', submitAuth);
+$('tabLogin').onclick = () => setAuthMode('login');
+$('tabRegister').onclick = () => setAuthMode('register');
+$('togglePw').onclick = togglePassword;
+[['name', 'nameErr'], ['email', 'emailErr'], ['password', 'passwordErr'], ['confirm', 'confirmErr']]
+  .forEach(([i, e]) => $(i).addEventListener('input', () => setFieldError(i, e, '')));
 $('nextBtn').onclick = nextStep;
 $('sendBtn').onclick = sendMessage;
 $('msgInput').addEventListener('keydown', e => { if (e.key === 'Enter') sendMessage(); });
